@@ -1,21 +1,10 @@
-
-import os.path
-import pickle
 from datetime import datetime
-
-filename = 'datastorage'
-if os.path.isfile(filename):
-    print(f'Existing dataset found.\nOpening {filename} ...')
-    with open(filename, 'rb') as data_json:
-        data_dict = pickle.load(data_json)
-        print('File imported.')
-else:
-    print('Dataset not found ...')
+from main import import_database, config
 
 
-def show_last_seen():  # prints last seen moments of targets
+def show_last_seen(my_data_dict):  # prints last seen moments of targets
     print('-------------------------------------')
-    for name, value in data_dict.items():
+    for name, value in my_data_dict.items():
         if type(value['last_seen']) == datetime:
             last_seen_value = value['last_seen'].strftime("last seen at: %H:%M:%S on %d-%b-%Y ")
         else:
@@ -25,13 +14,20 @@ def show_last_seen():  # prints last seen moments of targets
     return
 
 
-def who_is_home():
+def who_is_home(my_data_dict):
     print('Currently home:')
-    for masterkey in data_dict.keys():
-        if data_dict[masterkey].get('is_home'):
+    for masterkey in my_data_dict.keys():
+        if my_data_dict[masterkey].get('is_home'):
             print(f'{masterkey} is at home')
     print('-------------------------------------')
 
 
-show_last_seen()
-who_is_home()
+def main():
+    filename = config['GENERAL']['filename']  # data file path
+    database_dict = import_database(filename)
+    show_last_seen(database_dict)
+    who_is_home(database_dict)
+
+
+if __name__ == '__main__':
+    main()
