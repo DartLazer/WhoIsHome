@@ -12,9 +12,9 @@ config['GENERAL'] = {'not_home_threshold': 15,
                      'arp_string': f'arp-scan --interface=',
                      'filename': 'datastorage'
                      }
-config['EMAIL-SETTINGS'] = {'sender_address': 'rpiblocker3000@gmail.com',
+config['EMAIL-SETTINGS'] = {'sender_address': 'from_address@mail.com',
                             'your_password': '####',
-                            'to_address': 'rikietje@gmail.com',
+                            'to_address': 'to_address@mail.com',
                             'smtp_domain': 'smtp.gmail.com',
                             'smtp_port': 465}
 config['EMAIL-MESSAGE'] = {
@@ -28,7 +28,6 @@ config['EMAIL-MESSAGE'] = {
 config['TARGETS'] = {'Rik': '192.168.2.2',
                      'Beau': '192.168.2.6',
                      'Lisa': '192.168.2.5',
-                     'Riks Bitcoin Node': '192.168.2.2',
                      'Riks PC': '192.168.2.1'}
 
 if os.path.isfile('whoishome.cfg'):  # if configfile exists: open, else create new
