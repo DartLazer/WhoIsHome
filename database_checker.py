@@ -1,16 +1,16 @@
 from datetime import datetime
-from main import import_database, config
+from main import import_database, print_banner
+from config_file_creator import config
 
 
 def show_last_seen(my_data_dict):  # prints last seen moments of targets
-    print('-------------------------------------')
     for name, value in my_data_dict.items():
         if type(value['last_seen']) == datetime:
             last_seen_value = value['last_seen'].strftime("last seen at: %H:%M:%S on %d-%b-%Y ")
         else:
             last_seen_value = 'not scanned before.'
         print('{name} was {lastseen}'.format(name=name, lastseen=last_seen_value))
-    print('-------------------------------------')
+    print('-------------------------------------------------------')
     return
 
 
@@ -19,10 +19,11 @@ def who_is_home(my_data_dict):
     for masterkey in my_data_dict.keys():
         if my_data_dict[masterkey].get('is_home'):
             print(f'{masterkey} is at home')
-    print('-------------------------------------')
+    print('-------------------------------------------------------')
 
 
 def main():
+    print_banner()
     filename = config['GENERAL']['filename']  # data file path
     database_dict = import_database(filename)
     show_last_seen(database_dict)

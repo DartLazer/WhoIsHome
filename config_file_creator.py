@@ -1,9 +1,15 @@
 import configparser
+import os
 
 config = configparser.ConfigParser()
+
+
 config['GENERAL'] = {'not_home_threshold': 15,
-                     'internet_interface': 'enp0s3',
+                     'internet_interface': 'eth0',
                      'arp_string': f'arp-scan --interface=',
+                     'ip_subnet' : '192.168.2',
+                     'ip_range_start': '1',
+                     'ip_range_end' : '200',
                      'filename': 'datastorage'
                      }
 config['EMAIL-SETTINGS'] = {'sender_address': 'from_address@mail.com',
@@ -19,7 +25,16 @@ config['EMAIL-MESSAGE'] = {
     'arrival_mail_body': 'Dear Sysadmin,\n\nThis email is to notify you that {target} has arrived home at {arrival_time}.\n\nWith regards,'
                          '\nYour Raspberry Pi'}
 
-config['TARGETS'] = {'Rik': '192.168.2.4',
-                     'Beau': '192.168.2.6',
-                     'Lisa': '192.168.2.5',
-                     'Riks PC': '192.168.2.1'}
+config['TARGETS'] = {'Joe\'s Phone': 'AA:AA:AA:AA:AA:AA',
+                     'Carol\'s Phone': 'AA:AA:AA:AA:AA:AA',
+                     'Lisa': 'AA:AA:AA:AA:AA:AA',
+                     'John\'s PC': 'AA:AA:AA:AA:AA:AA'}
+
+
+if os.path.isfile('whoishome.cfg'):  # if configfile exists: open, else create new
+    config.read('whoishome.cfg')
+else:
+    with open('whoishome.cfg', 'w') as configfile:
+        config.write(configfile)
+        print('Config file not found!!!\nDont worry, I\'m creating a new one for you right now.\n If the program doesn\'t run make sure you have the config '
+              'file setup properly! Especially the internet interface!')
