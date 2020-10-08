@@ -8,7 +8,7 @@ def strip_string_to_target_data(string):
     return stripped_string
 
 
-def approved_mac_checker(scanned_dictionary, approved_list):
+def intruder_detection(scanned_dictionary, approved_list):
     for ip, value in scanned_dictionary.items():
         if value['MAC'] not in approved_list:
             print('New MAC ADDRESS detected: ')
@@ -19,7 +19,7 @@ def approved_mac_checker(scanned_dictionary, approved_list):
 
 def scan_network(ip_subnet, ip_min, ip_max):
     online_hosts = {}
-    raw_scan_output = os.popen('arp-scan --interface=wlp2s0 --retry 5 ' + ip_subnet + ip_min + '-' + ip_subnet + ip_max).read()
+    raw_scan_output = os.popen('arp-scan --interface=enp0s3 --retry 5 ' + ip_subnet + ip_min + '-' + ip_subnet + ip_max).read()
     split_output = raw_scan_output.split('\n')[2:-5]
     for host in split_output:
         stripped_host = host.split('\t')
@@ -30,7 +30,7 @@ def scan_network(ip_subnet, ip_min, ip_max):
 def main():
     approved_mac_address = ['b8:27:eb:59:1d:96', 'dc:a6:32:5e:68:96', '80:b0:3d:79:44:0d', '86:62:a3:f3:2c:e0']
     found_hosts = scan_network('192.168.2.', '1', '200')
-    approved_mac_address = approved_mac_checker(found_hosts, approved_mac_address)
+    print(found_hosts)
 
 
 if __name__ == '__main__':

@@ -2,33 +2,9 @@ import pickle
 import os.path
 from datetime import datetime
 import os
-import configparser
 import smtplib
 from time import sleep
-
-config = configparser.ConfigParser()
-config['GENERAL'] = {'not_home_threshold': 15,
-                     'internet_interface': 'eth0',
-                     'arp_string': f'arp-scan --interface=',
-                     'filename': 'datastorage'
-                     }
-config['EMAIL-SETTINGS'] = {'sender_address': 'from_address@mail.com',
-                            'your_password': '####',
-                            'to_address': 'to_address@mail.com',
-                            'smtp_domain': 'smtp.gmail.com',
-                            'smtp_port': 465}
-config['EMAIL-MESSAGE'] = {
-    'departure_mail_subject': '{target} just left home.',
-    'departure_mail_body': 'Dear Sysadmin,\n\nThis email is to notify you that {target} has left home at {departure_time}.\n{target} was home '
-                           'since {arrival_time}!\nWith regards,\nYour Raspberry Pi',
-    'arrival_mail_subject': '{target} just arrived home.',
-    'arrival_mail_body': 'Dear Sysadmin,\n\nThis email is to notify you that {target} has arrived home at {arrival_time}.\n\nWith regards,'
-                         '\nYour Raspberry Pi'}
-
-config['TARGETS'] = {'Rik': '192.168.2.2',
-                     'Beau': '192.168.2.6',
-                     'Lisa': '192.168.2.5',
-                     'Riks PC': '192.168.2.1'}
+from config_file_creator import config
 
 if os.path.isfile('whoishome.cfg'):  # if configfile exists: open, else create new
     config.read('whoishome.cfg')
@@ -80,18 +56,6 @@ def add_to_dict(key, value, data_dict):  # functon writes to dictionary
     return data_dict
 
 
-def is_home_check(data_dict, my_not_home_threshold):
-    for masterkey, value in data_dict.items():
-        if value['scans_missed_counter'] == 0 and value['is_home'] is False:
-            value['arrival_time'] = value['last_seen']
-            value['is_home'] = True
-            email_sender(masterkey, data_dict, config['EMAIL-MESSAGE']['arrival_mail_subject'], config['EMAIL-MESSAGE']['arrival_mail_body'])
-        elif value['scans_missed_counter'] > my_not_home_threshold and value['is_home'] is True:
-            value['is_home'] = False
-            email_sender(masterkey, data_dict, config['EMAIL-MESSAGE']['departure_mail_subject'], config['EMAIL-MESSAGE']['departure_mail_body'])
-    return data_dict
-
-
 def email_sender(target, data_dict, my_subject, my_message):
     arrival_time = data_dict[target].get('arrival_time').strftime("%H:%M:%S on %d-%b-%Y ")
     departure_time = data_dict[target].get('last_seen').strftime("%H:%M:%S on %d-%b-%Y ")
@@ -115,33 +79,46 @@ def email_sender(target, data_dict, my_subject, my_message):
     smtp_server.close()
 
 
+def scan_network(ip_subnet, ip_min, ip_max, scanner_settings_dict):
+    print('Scanning ....')
+    online_hosts = {}
+    raw_scan_output = os.popen(scanner_settings_dict['arp_string'] + scanner_settings_dict['internet_interface'] + ' --retry 5 ' + ip_subnet + ip_min + '-' +
+                               ip_subnet + ip_max).read()
+    split_output = raw_scan_output.split('\n')[2:-5]
+    for host in split_output:
+        stripped_host = host.split('\t')
+        online_hosts[stripped_host[0]] = {'MAC': stripped_host[1], 'Device-Name': stripped_host[2]}
+    return online_hosts
+
+
+def is_home_check(data_dict, my_not_home_threshold):
+    for masterkey, value in data_dict.items():
+        if value['scans_missed_counter'] == 0 and value['is_home'] is False:
+            value['arrival_time'] = value['last_seen']
+            value['is_home'] = True
+            # email_sender(masterkey, data_dict, config['EMAIL-MESSAGE']['arrival_mail_subject'], config['EMAIL-MESSAGE']['arrival_mail_body'])
+        elif value['scans_missed_counter'] > my_not_home_threshold and value['is_home'] is True:
+            value['is_home'] = False
+            # email_sender(masterkey, data_dict, config['EMAIL-MESSAGE']['departure_mail_subject'], config['EMAIL-MESSAGE']['departure_mail_body'])
+    return data_dict
+
+
+def scan_processor(scanned_dictionary, my_data_dict, my_targets):
+    print('---------------------------------\nTargets found:')
+    for name, ip in my_targets.items():
+        if ip in scanned_dictionary.keys():
+            print(name)
+            time_found = datetime.now()
+            my_data_dict.update(add_to_dict(name, time_found, my_data_dict))
+        else:
+            my_data_dict[name]['scans_missed_counter'] += 1
+    print('---------------------------------')
+    return my_data_dict
+
+
 def write_file(my_dict, my_filename):  # writes datadict to pickle file
     with open(my_filename, 'wb') as data_write_pickle:
         pickle.dump(my_dict, data_write_pickle)
-
-
-def scan_network(target_dictionary, data_dict, scanner_settings_dict):
-    amount_targets = len(target_dictionary)
-    found = 0
-    if amount_targets > 0 and target_dictionary is not None:
-        print('Scanning ' + str(amount_targets) + ' targets.')
-        print('-------------------------------------')
-        for name, ip in target_dictionary.items():
-            result = os.popen(scanner_settings_dict['arp_string'] + scanner_settings_dict['internet_interface'] + ' ' + ip).read()[-12]
-            if result == '1':
-                print(f'{name} is at home and connected.')
-                found += 1
-                time_found = datetime.now()
-                data_dict.update(add_to_dict(name, time_found, data_dict))
-            else:
-                print(f'{name} is not connected.')
-                data_dict[name]['scans_missed_counter'] += 1
-    else:
-        print('Cannot run tool without targets. Enter in the form of dictionary: Target name : Ip address.')
-        raise SystemExit
-    print('-------------------------------------')
-    print(f'Scan completed.\nFound {found} out of {amount_targets} targets.')
-    return data_dict
 
 
 def main():
@@ -152,9 +129,11 @@ def main():
     imported_database = import_database(filename)  # imports the database file
     database_dict = init_dict(imported_database, targets, not_home_threshold)
     while True:
-        database_dict = scan_network(targets, database_dict, scanner_settings)
+        found_hosts = scan_network('192.168.2.', '1', '200', scanner_settings)
+        database_dict = scan_processor(found_hosts, database_dict, targets)
         is_home_check(database_dict, not_home_threshold)
         write_file(database_dict, filename)
+        print('sleeping')
         sleep(60)
 
 
