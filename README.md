@@ -1,5 +1,6 @@
 Welcome to my WhoIsHome scanner!
 This tool scans your home network with the tool arp-scan (only dependecy).
+
 ***This tool requires ROOT priviliges because of ARP-SCAN***
 
 ****ABOUT THIS SCRIPT****
@@ -7,15 +8,18 @@ This tool scans your home network with the tool arp-scan (only dependecy).
 After completing a scan of the desired IP-Range (specified in the config file) it will tell you wether your targets (also specified in the cfg file) are at home or not.
 A target is considered not at home if it misses more scans that the not_home_threshold (config file again). 
 The reason I built it like this is because I discovered most Apple devices switch off Wi-Fi while not used for a while, and this way you prevent a lot of false not home triggers. 
+
 In my experience setting this value between 15-20 scans (15-20 minutes) prevents most false positives.
 At the moment the script is built this way so that when a target leaves- or comes home the specified email address in the config file will be sent an e-mail.
 You could also replace this function (email-sender) with something else you desire, like switching on- or off lights. 
+
 I built this as a project to expand my pyhton skills so any feedback is welcome. I will most likely improve on this project in the future.
 
 
 
 ****INSTRUCTIONS****
 Install dependecy sudo apt install arp-scanner
+
 Before running first time edit the CFG file.
   - file name reverse to the name of the 'database' storage file. (picke file) by default it will save to filename datastorage
   - Set internet adapter (ifconfig in command to get the correct name)
