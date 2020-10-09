@@ -2,7 +2,7 @@ Welcome to my WhoIsHome scanner!
 This tool scans your home network with the tool arp-scan (only dependecy).
 ***This tool requires ROOT priviliges because of ARP-SCAN***
 
-**** ABOUT THIS SCRIPT ****
+****ABOUT THIS SCRIPT****
 After completing a scan of the desired IP-Range (specified in the config file) it will tell you wether your targets (also specified in the cfg file) are at home or not.
 A target is considered not at home if it misses more scans that the not_home_threshold (config file again). 
 The reason I built it like this is because I discovered most Apple devices switch off Wi-Fi while not used for a while, and this way you prevent a lot of false not home triggers. 
