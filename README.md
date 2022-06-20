@@ -1,7 +1,9 @@
 Welcome to my WhoIsHome scanner!
 This tool scans your home network with the tool arp-scan (only dependecy).
 
-***This tool requires ROOT priviliges because of ARP-SCAN***
+***The new updated version of this script with a User Interface is available at https://github.com/DartLazer/WhoIsHomeUI***
+
+This tool requires ROOT priviliges because of ARP-SCAN
 
 ****ABOUT THIS SCRIPT****
 
